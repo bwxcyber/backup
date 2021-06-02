@@ -1,0 +1,31 @@
+server {
+
+	root /var/www/html;
+	index index.html index.htm index.nginx-debian.html;
+    server_name www.osingtunnel.xyz;
+
+	location / {
+		try_files $uri $uri/ =404;
+	}
+
+    listen [::]:443 ssl ipv6only=on;
+    listen 443 ssl;
+    ssl_certificate /etc/nginx/cert/fullchain.pem;
+    ssl_certificate_key /etc/nginx/cert/privkey.pem;
+    include /etc/nginx/cert/options-ssl-nginx.conf;
+    ssl_dhparam /etc/nginx/cert/ssl-dhparams.pem;
+
+}
+
+server {
+
+    if ($host = www.osingtunnel.xyz) {
+        return 301 https://$host$request_uri;
+    }
+
+	listen 80;
+	listen [::]:80;
+    server_name www.osingtunnel.xyz;
+    return 404;
+
+}
