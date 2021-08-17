@@ -1,0 +1,108 @@
+#!/usr/bin/bash
+Del(){
+err="\033[1;31m"
+n="\033[0m"
+clear
+echo "[1] Vmess"
+echo "[2] Vless"
+echo "[3] Trojan"
+echo "[x] Exit"
+read -p $'\n[Choose] > ' del
+if [[ ${del} == 1 ]]; then
+noc=`grep -c -E "^### " "/usr/local/etc/v2ray/vmess.json"`
+if [[ ${noc} == '0' ]]; then
+	echo -e "${err}You have no existing clients!${n}"
+	exit
+fi
+clear
+echo "Select the existing client you want to remove!"
+echo "=============================================="
+grep -E "^### " "/usr/local/etc/v2ray/vmess.json" | cut -d ' ' -f 2-3 | nl -s ') '
+echo "=============================================="
+until [[ ${cn} -ge 1 && ${cn} -le ${noc} ]]; do
+	if [[ ${cn} == '1' ]]; then
+		read -p "Select client [1]: " cn
+	else
+		read -p "Select client [1-${noc}]: " cn
+	fi
+done
+user=$(grep -E "^### " "/usr/local/etc/v2ray/vmess.json" | cut -d ' ' -f 2 | sed -n "${cn}"p)
+exp=$(grep -E "^### " "/usr/local/etc/v2ray/vmess.json" | cut -d ' ' -f 3 | sed -n "${cn}"p)
+sed -i "/^### ${user} ${exp}/,/^},{/d" /usr/local/etc/v2ray/vmess.json
+rm -f /usr/local/etc/v2ray/${user}.json
+clear
+echo "Successfully delete VMESS Account"
+echo "================================="
+echo "Username  : ${user}"
+echo "Expired   : ${exp}"
+echo "================================="
+systemctl restart v2ray@vmess
+
+elif [[ ${del} == 2 ]]; then
+noc=`grep -c -E "^### " "/usr/local/etc/v2ray/vless.json"`
+if [[ ${noc} == '0' ]]; then
+	echo -e "${err}You have no existing clients!${n}"
+	exit
+fi
+clear
+echo "Select the existing client you want to remove!"
+echo "=============================================="
+grep -E "^### " "/usr/local/etc/v2ray/vless.json" | cut -d ' ' -f 2-3 | nl -s ') '
+echo "=============================================="
+until [[ ${cn} -ge 1 && ${cn} -le ${noc} ]]; do
+	if [[ ${cn} == '1' ]]; then
+		read -p "Select client [1]: " cn
+	else
+		read -p "Select client [1-${noc}]: " cn
+	fi
+done
+user=$(grep -E "^### " "/usr/local/etc/v2ray/vless.json" | cut -d ' ' -f 2 | sed -n "${cn}"p)
+exp=$(grep -E "^### " "/usr/local/etc/v2ray/vless.json" | cut -d ' ' -f 3 | sed -n "${cn}"p)
+sed -i "/^### ${user} ${exp}/,/^},{/d" /usr/local/etc/v2ray/vless.json
+clear
+echo "Successfully delete VLESS Account"
+echo "================================="
+echo "Username  : ${user}"
+echo "Expired   : ${exp}"
+echo "================================="
+systemctl restart v2ray@vless
+
+elif [[ ${del} == 3 ]]; then
+noc=`grep -c -E "^### " "/usr/local/etc/v2ray/trojan.json"`
+if [[ ${noc} == '0' ]]; then
+	echo -e "${err}You have no existing clients!${n}"
+	exit
+fi
+clear
+echo "Select the existing client you want to remove!"
+echo "=============================================="
+grep -E "^### " "/usr/local/etc/v2ray/trojan.json" | cut -d ' ' -f 2-3 | nl -s ') '
+echo "=============================================="
+until [[ ${cn} -ge 1 && ${cn} -le ${noc} ]]; do
+	if [[ ${cn} == '1' ]]; then
+		read -p "Select client [1]: " cn
+	else
+		read -p "Select client [1-${noc}]: " cn
+	fi
+done
+user=$(grep -E "^### " "/usr/local/etc/v2ray/trojan.json" | cut -d ' ' -f 2 | sed -n "${cn}"p)
+exp=$(grep -E "^### " "/usr/local/etc/v2ray/trojan.json" | cut -d ' ' -f 3 | sed -n "${cn}"p)
+sed -i "/^### ${user} ${exp}/,/^},{/d" /usr/local/etc/v2ray/trojan.json
+clear
+echo "Successfully delete TROJAN Account"
+echo "=================================="
+echo "Username  : ${user}"
+echo "Expired   : ${exp}"
+echo "=================================="
+systemctl restart v2ray@trojan
+
+elif [[ ${del} == x ]]; then
+exit
+
+else
+Del
+
+fi
+}
+
+Del
