@@ -1,0 +1,102 @@
+#!/usr/bin/bash
+err="\033[1;31m"
+n="\033[0m"
+domain="vip.osingtunnel.xyz"
+port="443"
+aid="64"
+uuid=`v2ctl uuid`
+
+Add(){
+clear
+echo "[1] Vmess"
+echo "[2] Vless"
+echo "[x] Exit"
+read -p $'\n[Choose] > ' add
+if [[ ${add} == 1 ]]; then
+echo
+until [[ ${user} =~ ^[a-zA-Z0-9_]+$ && ${exists} == '0' ]]; do
+      read -p "[+] Username: " user
+      exists=$(grep -w ${user} /usr/local/etc/v2ray/config.json | wc -l)
+      if [[ ${exists} == '1' ]]; then
+            echo -e "${err}${user} already exists, Please choose another name!${n}"
+            exit
+      fi
+done
+read -p "[+] Expired: " e
+exp=$(date -d "${e} days" +"%Y-%m-%d")
+sed -i '/#clients$/a\### '"${user} ${exp}"'\
+},{"id": "'""${uuid}""'","alterId": '"64"',"email": "'""${user}""'"' /usr/local/etc/v2ray/config.json
+cat > /usr/local/etc/v2ray/${user}.json <<-EOF
+      {
+      "v": "2",
+      "ps": "${user}",
+      "add": "${domain}",
+      "port": "${port}",
+      "id": "${uuid}",
+      "aid": "${aid}",
+      "net": "ws",
+      "path": "/osingtunnel",
+      "type": "none",
+      "host": "",
+      "tls": "tls"
+}
+EOF
+link="vmess://$(base64 -w 0 /usr/local/etc/v2ray/${user}.json)"
+clear
+echo "=====================-VMESS-====================="
+echo "Remarks  : ${user}"
+echo "Domain   : ${domain}"
+echo "Port     : ${port}"
+echo "id       : ${uuid}"
+echo "alterId  : ${aid}"
+echo "security : auto"
+echo "Network  : ws"
+echo "path     : /osingtunnel"
+echo "================================================="
+echo "Link     : ${link}"
+echo "================================================="
+echo "Expired  : ${exp}"
+echo "================================================="
+systemctl restart v2ray
+
+elif [[ ${add} == 2 ]]; then
+echo
+until [[ ${user} =~ ^[a-zA-Z0-9_]+$ && ${exists} == '0' ]]; do
+      read -p "[+] Username: " user
+      exists=$(grep -w ${user} /usr/local/etc/xray/config.json | wc -l)
+      if [[ ${exists} == '1' ]]; then
+            echo -e "${err}${user} already exists, Please choose another name!${n}"
+            exit
+      fi
+done
+read -p "[+] Expired: " e
+exp=$(date -d "${e} days" +"%Y-%m-%d")
+sed -i '/#clients$/a\### '"${user} ${exp}"'\
+},{"id": "'""${uuid}""'","email": "'""${user}""'"' /usr/local/etc/xray/config.json
+link="vless://${uuid}@${domain}:${port}?path=/osingtunnel&security=tls&encryption=none&type=ws#${user}"
+clear
+echo "=====================-VLESS-====================="
+echo "Remarks    : ${user}"
+echo "Domain     : ${domain}"
+echo "Port       : ${port}"
+echo "id         : ${uuid}"
+echo "encryption : none"
+echo "Network    : ws"
+echo "path       : /osingtunnel"
+echo "================================================="
+echo "Link       : ${link}"
+echo "================================================="
+echo "Expired    : ${exp}"
+echo "================================================="
+systemctl restart xray
+
+elif [[ ${add} == x ]]; then
+exit
+
+else
+Add
+
+fi
+}
+
+Add
